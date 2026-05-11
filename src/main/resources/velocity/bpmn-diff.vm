@@ -1,8 +1,8 @@
 <html>
 <head>
-    $webResourceManager.requireResourcesForContext("bpmn-diff-page")
     <meta name="decorator" content="atl.general"/>
     <title>BPMN Visual Diff</title>
+    $webResourceManager.requireResource("com.github.criew.bitbucket.bitbucket-bpmn-support:bpmn-diff-resources")
 </head>
 <body>
 <div class="bpmn-diff-content">

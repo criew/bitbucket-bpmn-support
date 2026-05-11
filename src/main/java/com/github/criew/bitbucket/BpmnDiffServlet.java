@@ -17,6 +17,7 @@ import java.util.Map;
 @Component
 public class BpmnDiffServlet extends HttpServlet {
     private static final String TEMPLATE_PATH = "velocity/bpmn-diff.vm";
+    private static final String TEMPLATE_EMBEDDED = "velocity/bpmn-diff-embedded.vm";
 
     private final TemplateRenderer templateRenderer;
     private final AuthenticationContext authenticationContext;
@@ -36,7 +37,10 @@ public class BpmnDiffServlet extends HttpServlet {
         if (authenticationContext.isAuthenticated()) {
             response.setContentType("text/html");
             Map<String, Object> params = new HashMap<>();
-            templateRenderer.render(TEMPLATE_PATH, params, response.getWriter());
+            params.put("contextPath", request.getContextPath());
+            String template = "true".equals(request.getParameter("embedded"))
+                    ? TEMPLATE_EMBEDDED : TEMPLATE_PATH;
+            templateRenderer.render(template, params, response.getWriter());
         } else {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
         }

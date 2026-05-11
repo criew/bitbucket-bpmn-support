@@ -80,6 +80,7 @@ function buildChangesTable(diffResult) {
 
 function renderChangesPanel(diffResult, viewerOld, viewerNew) {
     const changesDiv = document.querySelector('#changes-overview .changes');
+    if (!changesDiv) return;
     const rows = buildChangesTable(diffResult);
 
     if (rows.length === 0) {
@@ -123,8 +124,29 @@ async function init() {
     const fromRef = getQueryParam('fromRef');
     const toRef = getQueryParam('toRef');
 
-    if (!project || !repository || !path || !fromRef || !toRef) {
-        document.body.innerHTML = '<p style="padding:20px;color:#bf2600">Missing required parameters (project, repository, path, fromRef, toRef).</p>';
+    if (!project || !repository || !path || !toRef) {
+        document.body.innerHTML = '<p style="padding:20px;color:#bf2600">Missing required parameters (project, repository, path, toRef).</p>';
+        return;
+    }
+
+    if (!fromRef) {
+        const leftContainer = document.querySelector('.di-container.left');
+        if (leftContainer) leftContainer.style.display = 'none';
+        const header = document.querySelector('.bpmn-diff-header');
+        if (header) {
+            header.querySelector('h2').textContent = 'BPMN Viewer';
+            const legend = header.querySelector('.bpmn-diff-legend');
+            if (legend) legend.style.display = 'none';
+        }
+        const viewer = new BpmnViewer({ container: '#canvas-right' });
+        try {
+            const xml = await fetchBpmnXml(project, repository, path, toRef);
+            await viewer.importXML(xml);
+            viewer.get('canvas').zoom('fit-viewport');
+        } catch (err) {
+            console.error('BPMN Viewer error:', err);
+            document.body.innerHTML = `<p style="padding:20px;color:#bf2600">Error loading BPMN: ${DOMPurify.sanitize(err.message)}</p>`;
+        }
         return;
     }
 

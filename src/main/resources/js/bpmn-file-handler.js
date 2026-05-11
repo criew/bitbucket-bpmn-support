@@ -1,101 +1,178 @@
 (function () {
     'use strict';
 
-    var fileHandlers;
-    try {
-        fileHandlers = require('bitbucket/feature/files/file-handlers');
-    } catch (e) {
-        return;
+    var BpmnViewer = window.__BpmnViewer;
+    var VIEWER_ID = 'bpmn-viewer-container';
+    var TOGGLE_CLASS = 'bpmn-toggle-btn';
+
+    function isBpmnFile() {
+        return /\/browse\/.*\.bpmn$/i.test(window.location.pathname);
     }
 
-    var BpmnViewer = window.__BpmnViewer;
+    function getFileRawUrl() {
+        var contextPath = (typeof AJS !== 'undefined' && AJS.contextPath) ? AJS.contextPath() : '';
+        var m = window.location.pathname.match(/\/projects\/([^/]+)\/repos\/([^/]+)\/browse\/(.+\.bpmn)$/i);
+        if (!m) return null;
+        var ref = new URLSearchParams(window.location.search).get('at') || '';
+        var url = contextPath + '/rest/api/latest/projects/' +
+            encodeURIComponent(m[1]) + '/repos/' +
+            encodeURIComponent(m[2]) + '/raw/' + m[3];
+        if (ref) url += '?at=' + encodeURIComponent(ref);
+        return url;
+    }
 
-    fileHandlers.register({
-        weight: 100,
-        handle: function (context) {
-            var extension = (context.extension || '').toLowerCase();
-            if (extension !== 'bpmn') {
-                return null;
-            }
+    var viewerState = {
+        wrapper: null,
+        codeView: null,
+        originalDisplay: '',
+        showingDiagram: true
+    };
 
-            return {
-                component: function (containerEl) {
-                    var wrapper = document.createElement('div');
-                    wrapper.className = 'bpmn-viewer-container';
+    function showDiagram() {
+        if (!viewerState.wrapper || !viewerState.codeView) return;
+        viewerState.showingDiagram = true;
+        viewerState.wrapper.style.display = '';
+        viewerState.codeView.style.display = 'none';
+        var btn = document.querySelector('.' + TOGGLE_CLASS);
+        if (btn) btn.textContent = 'Quellcode';
+    }
 
-                    var toolbar = document.createElement('div');
-                    toolbar.className = 'bpmn-viewer-toolbar';
+    function showSource() {
+        if (!viewerState.wrapper || !viewerState.codeView) return;
+        viewerState.showingDiagram = false;
+        viewerState.wrapper.style.display = 'none';
+        viewerState.codeView.style.display = viewerState.originalDisplay;
+        var btn = document.querySelector('.' + TOGGLE_CLASS);
+        if (btn) btn.textContent = 'Diagramm';
+        var cm = viewerState.codeView.querySelector('.CodeMirror');
+        if (cm && cm.CodeMirror) cm.CodeMirror.refresh();
+        setTimeout(function () {
+            window.dispatchEvent(new Event('resize'));
+        }, 50);
+    }
 
-                    var zoomInBtn = document.createElement('button');
-                    zoomInBtn.textContent = '+';
-                    zoomInBtn.title = 'Zoom in';
+    function renderViewer() {
+        if (document.getElementById(VIEWER_ID)) return;
 
-                    var zoomOutBtn = document.createElement('button');
-                    zoomOutBtn.textContent = '−';
-                    zoomOutBtn.title = 'Zoom out';
+        var fileContent = document.querySelector('#file-content, .file-content');
+        if (!fileContent) return;
 
-                    var fitBtn = document.createElement('button');
-                    fitBtn.textContent = '▣';
-                    fitBtn.title = 'Fit to viewport';
+        var codeView = fileContent.querySelector(
+            '.source-view, .content-view, .code-view, ' +
+            '.refract-content-container, table.lines, pre.source, .CodeMirror'
+        );
+        if (!codeView) return;
 
-                    toolbar.appendChild(zoomInBtn);
-                    toolbar.appendChild(zoomOutBtn);
-                    toolbar.appendChild(fitBtn);
+        viewerState.codeView = codeView;
+        viewerState.originalDisplay = codeView.style.display;
 
-                    var canvasEl = document.createElement('div');
-                    canvasEl.className = 'canvas';
+        var wrapper = document.createElement('div');
+        wrapper.id = VIEWER_ID;
+        wrapper.style.cssText = 'width:100%;height:600px;border:1px solid #dfe1e6;border-radius:3px;background:#fafbfc;position:relative;';
+        viewerState.wrapper = wrapper;
 
-                    wrapper.appendChild(toolbar);
-                    wrapper.appendChild(canvasEl);
-                    containerEl.appendChild(wrapper);
+        var zoomBar = document.createElement('div');
+        zoomBar.style.cssText = 'position:absolute;top:8px;right:8px;z-index:10;display:flex;gap:4px;';
 
-                    var loadingEl = document.createElement('div');
-                    loadingEl.className = 'bpmn-viewer-loading';
-                    loadingEl.textContent = 'Loading BPMN diagram…';
-                    canvasEl.appendChild(loadingEl);
+        var zoomIn = document.createElement('button');
+        zoomIn.className = 'aui-button aui-button-subtle';
+        zoomIn.textContent = '+';
+        zoomIn.title = 'Zoom in';
 
-                    var contextPath = typeof AJS !== 'undefined' ? AJS.contextPath() : '';
-                    var url = contextPath + '/rest/api/latest/projects/' +
-                        encodeURIComponent(context.project.key) + '/repos/' +
-                        encodeURIComponent(context.repository.slug) + '/raw/' +
-                        context.path + '?at=' + encodeURIComponent(context.revisionRef);
+        var zoomOut = document.createElement('button');
+        zoomOut.className = 'aui-button aui-button-subtle';
+        zoomOut.textContent = '−';
+        zoomOut.title = 'Zoom out';
 
-                    fetch(url, { credentials: 'same-origin' })
-                        .then(function (response) {
-                            if (!response.ok) throw new Error('HTTP ' + response.status);
-                            return response.text();
-                        })
-                        .then(function (xml) {
-                            canvasEl.removeChild(loadingEl);
+        var fit = document.createElement('button');
+        fit.className = 'aui-button aui-button-subtle';
+        fit.textContent = '▣';
+        fit.title = 'Fit to viewport';
 
-                            if (!BpmnViewer) {
-                                canvasEl.innerHTML = '<div class="bpmn-viewer-error">BPMN Viewer library not loaded.</div>';
-                                return;
-                            }
+        zoomBar.appendChild(zoomIn);
+        zoomBar.appendChild(zoomOut);
+        zoomBar.appendChild(fit);
 
-                            var viewer = new BpmnViewer({ container: canvasEl });
-                            viewer.importXML(xml).then(function () {
-                                viewer.get('canvas').zoom('fit-viewport');
+        var canvasEl = document.createElement('div');
+        canvasEl.style.cssText = 'width:100%;height:100%;';
 
-                                zoomInBtn.addEventListener('click', function () {
-                                    viewer.get('canvas').zoom(viewer.get('canvas').zoom() * 1.2);
-                                });
-                                zoomOutBtn.addEventListener('click', function () {
-                                    viewer.get('canvas').zoom(viewer.get('canvas').zoom() / 1.2);
-                                });
-                                fitBtn.addEventListener('click', function () {
-                                    viewer.get('canvas').zoom('fit-viewport');
-                                });
-                            }).catch(function (err) {
-                                canvasEl.innerHTML = '<div class="bpmn-viewer-error">Error rendering BPMN: ' + err.message + '</div>';
-                            });
-                        })
-                        .catch(function (err) {
-                            canvasEl.innerHTML = '<div class="bpmn-viewer-error">Error loading file: ' + err.message + '</div>';
-                        });
-                },
-                dispose: function () {}
-            };
+        wrapper.appendChild(zoomBar);
+        wrapper.appendChild(canvasEl);
+
+        codeView.style.display = 'none';
+        codeView.parentNode.appendChild(wrapper);
+
+        var url = getFileRawUrl();
+        if (!url) return;
+
+        fetch(url, { credentials: 'same-origin' })
+            .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+            .then(function (xml) {
+                var viewer = new BpmnViewer({ container: canvasEl });
+                viewer.importXML(xml).then(function () {
+                    viewer.get('canvas').zoom('fit-viewport');
+                    zoomIn.addEventListener('click', function () {
+                        viewer.get('canvas').zoom(viewer.get('canvas').zoom() * 1.2);
+                    });
+                    zoomOut.addEventListener('click', function () {
+                        viewer.get('canvas').zoom(viewer.get('canvas').zoom() / 1.2);
+                    });
+                    fit.addEventListener('click', function () {
+                        viewer.get('canvas').zoom('fit-viewport');
+                    });
+                }).catch(function (err) {
+                    wrapper.innerHTML = '<div style="padding:20px;color:#bf2600">Error rendering BPMN: ' + err.message + '</div>';
+                });
+            })
+            .catch(function (err) {
+                wrapper.innerHTML = '<div style="padding:20px;color:#bf2600">Error loading file: ' + err.message + '</div>';
+            });
+    }
+
+    function tryAddToggle() {
+        if (!document.getElementById(VIEWER_ID)) return;
+        if (document.querySelector('.' + TOGGLE_CLASS)) return;
+
+        var rawLink = null;
+        var blameBtn = null;
+        var allBtns = document.querySelectorAll('#file-content a, #file-content button, .file-content a, .file-content button');
+        for (var i = 0; i < allBtns.length; i++) {
+            var text = (allBtns[i].textContent || '').trim();
+            if (text === 'Raw' || text === 'Unformatierte Datei' || text === 'Raw file') rawLink = allBtns[i];
+            if (text === 'Blame') blameBtn = allBtns[i];
         }
-    });
+        var toolbar = rawLink ? rawLink.parentElement : (blameBtn ? blameBtn.parentElement : null);
+        if (!toolbar) return;
+
+        var toggleBtn = document.createElement('button');
+        toggleBtn.className = 'aui-button aui-button-link ' + TOGGLE_CLASS;
+        toggleBtn.textContent = viewerState.showingDiagram ? 'Quellcode' : 'Diagramm';
+        toggleBtn.style.cssText = 'font-weight:600;';
+        toggleBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            if (viewerState.showingDiagram) showSource();
+            else showDiagram();
+        });
+
+        if (rawLink) {
+            toolbar.insertBefore(toggleBtn, rawLink);
+        } else {
+            toolbar.appendChild(toggleBtn);
+        }
+    }
+
+    function tick() {
+        if (!isBpmnFile() || !BpmnViewer) return;
+        renderViewer();
+        tryAddToggle();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () { setTimeout(tick, 500); });
+    } else {
+        setTimeout(tick, 500);
+    }
+
+    var observer = new MutationObserver(function () { setTimeout(tick, 200); });
+    observer.observe(document.documentElement, { childList: true, subtree: true });
 })();
