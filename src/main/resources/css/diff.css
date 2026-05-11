@@ -1,0 +1,40 @@
+.diff-removed .djs-visual > :nth-child(1) {
+    stroke: #cc0000 !important;
+}
+.diff-removed .djs-outline {
+    fill: rgba(204, 0, 0, 0.15) !important;
+    stroke: #cc0000 !important;
+    visibility: visible !important;
+}
+
+.diff-added .djs-visual > :nth-child(1) {
+    stroke: #006644 !important;
+}
+.diff-added .djs-outline {
+    fill: rgba(0, 102, 68, 0.15) !important;
+    stroke: #006644 !important;
+    visibility: visible !important;
+}
+
+.diff-changed .djs-visual > :nth-child(1) {
+    stroke: #ff991f !important;
+}
+.diff-changed .djs-outline {
+    fill: rgba(255, 153, 31, 0.15) !important;
+    stroke: #ff991f !important;
+    visibility: visible !important;
+}
+
+.diff-layout-changed .djs-visual > :nth-child(1) {
+    stroke: #0052cc !important;
+}
+.diff-layout-changed .djs-outline {
+    fill: rgba(0, 82, 204, 0.15) !important;
+    stroke: #0052cc !important;
+    visibility: visible !important;
+}
+
+.highlight-marker .djs-outline {
+    stroke-width: 3px !important;
+    visibility: visible !important;
+}

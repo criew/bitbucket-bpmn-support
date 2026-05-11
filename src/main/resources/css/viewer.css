@@ -1,0 +1,48 @@
+.bpmn-viewer-container {
+    width: 100%;
+    height: 600px;
+    border: 1px solid #dfe1e6;
+    border-radius: 3px;
+    background: #fafbfc;
+    position: relative;
+}
+
+.bpmn-viewer-container .canvas {
+    width: 100%;
+    height: 100%;
+}
+
+.bpmn-viewer-toolbar {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 10;
+    display: flex;
+    gap: 4px;
+}
+
+.bpmn-viewer-toolbar button {
+    padding: 4px 8px;
+    border: 1px solid #dfe1e6;
+    border-radius: 3px;
+    background: white;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.bpmn-viewer-toolbar button:hover {
+    background: #f4f5f7;
+}
+
+.bpmn-viewer-error {
+    padding: 20px;
+    color: #bf2600;
+    text-align: center;
+}
+
+.bpmn-viewer-loading {
+    padding: 40px;
+    text-align: center;
+    color: #6b778c;
+    font-size: 14px;
+}

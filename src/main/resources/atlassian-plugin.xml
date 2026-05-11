@@ -1,0 +1,50 @@
+<atlassian-plugin key="${atlassian.plugin.key}" name="${project.name}" plugins-version="2">
+    <plugin-info>
+        <description>${project.description}</description>
+        <version>${project.version}</version>
+        <vendor name="criew" url="https://github.com/criew/bitbucket-bpmn-support"/>
+        <param name="atlassian-data-center-status">compatible</param>
+        <param name="atlassian-data-center-compatible">true</param>
+    </plugin-info>
+
+    <resource type="i18n" name="i18n" location="i18n/bpmn-plugin"/>
+
+    <!-- BPMN Diff page (opened from PR) -->
+    <web-resource key="bpmn-diff-resources" name="BPMN Diff Resources">
+        <dependency>com.atlassian.auiplugin:ajs</dependency>
+        <resource type="download" name="bpmn_diff.bundle.js" location="js/bpmn_diff.bundle.js"/>
+        <resource type="download" name="app.css" location="css/app.css"/>
+        <resource type="download" name="bpmnio.css" location="css/bpmnio.css"/>
+        <resource type="download" name="diff.css" location="css/diff.css"/>
+        <context>bpmn-diff-page</context>
+    </web-resource>
+
+    <servlet name="BPMN Diff Servlet" key="bpmn-diff-servlet"
+             class="com.github.criew.bitbucket.BpmnDiffServlet"
+             i18n-name-key="bpmn.diff.servlet.name">
+        <url-pattern>/bpmn-diff</url-pattern>
+    </servlet>
+
+    <!-- BPMN Diff button injected on PR diff pages -->
+    <web-resource key="bpmn-diff-button" name="BPMN Diff Button">
+        <dependency>com.atlassian.auiplugin:ajs</dependency>
+        <resource type="download" name="bpmn-diff-button.js" location="js/bpmn-diff-button.js"/>
+        <context>bitbucket.page.pullRequest.view</context>
+    </web-resource>
+
+    <!-- BPMN Viewer for repo file browsing -->
+    <web-resource key="bpmn-viewer-resources" name="BPMN File Viewer Resources">
+        <dependency>com.atlassian.auiplugin:ajs</dependency>
+        <resource type="download" name="bpmn_viewer.bundle.js" location="js/bpmn_viewer.bundle.js"/>
+        <resource type="download" name="bpmnio.css" location="css/bpmnio.css"/>
+        <resource type="download" name="viewer.css" location="css/viewer.css"/>
+        <context>bitbucket.page.repository.browse</context>
+    </web-resource>
+
+    <web-resource key="bpmn-file-handler" name="BPMN File Handler">
+        <dependency>com.atlassian.auiplugin:ajs</dependency>
+        <dependency>${atlassian.plugin.key}:bpmn-viewer-resources</dependency>
+        <resource type="download" name="bpmn-file-handler.js" location="js/bpmn-file-handler.js"/>
+        <context>bitbucket.page.repository.browse</context>
+    </web-resource>
+</atlassian-plugin>
