@@ -56,18 +56,50 @@ For initial commits without a parent, the plugin shows a read-only BPMN viewer i
 
 ## Installation
 
-### From Release
+### Option A: Install via Bitbucket Admin UI (recommended)
 
-1. Download `bitbucket-bpmn-support-1.0.0.jar` from the [Releases](https://github.com/criew/bitbucket-bpmn-support/releases) page
-2. Copy it to your Bitbucket shared plugins directory:
+This is the standard way to install plugins on an existing Bitbucket Data Center instance — no server restart required.
+
+1. **Download** the plugin JAR:
+   - From the [Releases](https://github.com/criew/bitbucket-bpmn-support/releases) page, or
+   - [Build it from source](#building)
+
+2. **Open the admin panel** in your Bitbucket instance:
+   - Go to **Administration** (gear icon in the top navigation)
+   - Navigate to **Manage apps** (under *Add-ons* in the sidebar)
+
+3. **Upload the plugin**:
+   - Click **Upload app**
+   - Select the `bitbucket-bpmn-support-1.0.0.jar` file
+   - Wait for the upload and installation to complete
+
+4. **Verify**: The plugin should appear in the list of *User-installed apps*. Browse to any `.bpmn` file in a repository — you should see the diagram rendered automatically.
+
+> No configuration is needed. The plugin activates automatically for all repositories and all users.
+
+### Option B: Manual file installation
+
+If you prefer to install the plugin directly on the filesystem (e.g., in automated deployments):
+
+1. Copy the JAR into the Bitbucket shared plugins directory:
    ```
-   <bitbucket-home>/shared/plugins/installed-plugins/
+   <bitbucket-home>/shared/plugins/installed-plugins/bitbucket-bpmn-support-1.0.0.jar
    ```
-3. Restart Bitbucket (or wait for the plugin framework to pick it up)
+   The default Bitbucket home directory is typically:
+   - **Linux**: `/var/atlassian/application-data/bitbucket`
+   - **Windows**: `C:\Atlassian\ApplicationData\Bitbucket`
+   - **Docker**: `/var/atlassian/application-data/bitbucket` (inside the container)
 
-### From Source
+2. Restart Bitbucket, or wait up to 60 seconds for the plugin framework to detect the new file.
 
-See [Building](#building) below.
+### Option C: Install from source
+
+See [Building](#building) below, then follow Option A or B with the built JAR.
+
+### Uninstalling
+
+- **Via Admin UI**: Go to *Manage apps*, find "BPMN Support for Bitbucket", click **Uninstall**.
+- **Via filesystem**: Delete the JAR from `shared/plugins/installed-plugins/` and restart Bitbucket.
 
 ---
 
