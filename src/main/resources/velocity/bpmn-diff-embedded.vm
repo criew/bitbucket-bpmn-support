@@ -45,6 +45,7 @@
         </div>
     </div>
 </div>
+<script>window.__bpmnContextPath = "$contextPath";</script>
 <script src="${contextPath}/download/resources/com.github.criew.bitbucket.bitbucket-bpmn-support:bpmn-diff-resources/bpmn_diff.bundle.js"></script>
 </body>
 </html>

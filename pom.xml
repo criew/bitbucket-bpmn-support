@@ -6,7 +6,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.criew.bitbucket</groupId>
     <artifactId>bitbucket-bpmn-support</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 
     <name>BPMN Support for Bitbucket</name>
     <description>Bitbucket Data Center plugin for BPMN file rendering and visual diff based on bpmn.io</description>

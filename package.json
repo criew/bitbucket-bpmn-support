@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "build:prod": "webpack --config config/webpack.config.js --mode production && webpack --config config/webpack.resources.config.js --mode production",
-    "build:dev": "webpack --config config/webpack.config.js --mode development && webpack --config config/webpack.resources.config.js --mode development"
+    "build:dev": "webpack --config config/webpack.config.js --mode development && webpack --config config/webpack.resources.config.js --mode development",
+    "test": "jest --testPathPatterns=src/test"
   },
   "dependencies": {
     "bpmn-js": "^17.11.1",
@@ -17,8 +18,11 @@
   "devDependencies": {
     "@babel/core": "^7.24.0",
     "@babel/preset-env": "^7.24.0",
+    "@jest/globals": "^30.4.1",
     "babel-loader": "^9.1.3",
     "css-loader": "^6.10.0",
+    "jest": "^30.4.2",
+    "jest-environment-jsdom": "^30.4.1",
     "mini-css-extract-plugin": "^2.8.0",
     "playwright": "^1.59.1",
     "style-loader": "^3.3.4",

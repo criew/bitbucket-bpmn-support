@@ -20,8 +20,14 @@ function getQueryParam(name) {
     return params.get(name);
 }
 
+function getContextPath() {
+    if (typeof window.__bpmnContextPath === 'string') return window.__bpmnContextPath;
+    if (typeof AJS !== 'undefined' && AJS.contextPath) return AJS.contextPath();
+    return '';
+}
+
 async function fetchBpmnXml(project, repository, path, ref) {
-    const contextPath = typeof AJS !== 'undefined' ? AJS.contextPath() : '';
+    const contextPath = getContextPath();
     const url = `${contextPath}/rest/api/latest/projects/${encodeURIComponent(project)}/repos/${encodeURIComponent(repository)}/raw/${path}?at=${encodeURIComponent(ref)}`;
     const response = await fetch(url, { credentials: 'same-origin' });
     if (!response.ok) throw new Error(`Failed to fetch ${path} at ${ref}: ${response.status}`);
